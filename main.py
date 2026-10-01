@@ -2,10 +2,10 @@
 """End-to-End Lakehouse Medallion Pipeline Orchestrator.
 
 Orchestrates the entire data lifecycle sequentially:
-  [Raw Data] -> 🥉 Bronze Ingestion -> 🥈 Silver Hygiene & Merge -> 🥇 Gold Aggregation & Z-Order -> 🐘 PostgreSQL Serving Layer
+  [Raw Data] -> Bronze Ingestion -> Silver Hygiene & Merge -> Gold Aggregation & Z-Order -> PostgreSQL Serving Layer
 
 Usage:
-  # Run full pipeline with synthetic E-Commerce data
+  # Run full pipeline with sample E-Commerce data
   python main.py --dataset ecommerce --records 1000
 
   # Run full pipeline for NYC Taxi dataset
@@ -41,19 +41,7 @@ from src.ingest_bronze import ADLSBronzeUploader, DatasetIngestor
 from src.silver_to_gold import run_silver_to_gold
 from src.utils.logger import setup_logger
 
-logger = setup_logger("main_orchestrator")
-
-BANNER = r"""
-========================================================================================
-   __  __ _____ ___   _    _     _     ___ ___  _   _   _     _    _  _____ _   _  ___  _   _ ____  _____ 
-  |  \/  | ____|   \ / \  | |   | |   |_ _/ _ \| \ | | | |   / \  | |/ / ____| | | |/ _ \| | | / ___|| ____|
-  | |\/| |  _| | |\ / _ \ | |   | |    | | | | |  \| | | |  / _ \ | ' /|  _| | |_| | | | | | | \___ \|  _|  
-  | |  | | |___| |/ / ___ \| |___| |___ | | |_| | |\  | | |___/ ___ \| . \| |___|  _  | |_| | |_| |___) | |___ 
-  |_|  |_|_____|___/_/   \_\_____|_____|___\___/|_| \_| |_____/_/   \_\_|\_\_____|_| |_|\___/ \___/|____/|_____|
-========================================================================================
-  Technologies: Python | PySpark 3.5 | Delta Lake 3.2 | Azure ADLS Gen2 | PostgreSQL
-========================================================================================
-"""
+logger = setup_logger("pipeline_runner")
 
 
 def format_duration(seconds: float) -> str:
@@ -68,10 +56,9 @@ def run_pipeline(
     dry_run_postgres: bool = False,
     pg_mode: str = "upsert",
 ) -> None:
-    """Executes the full end-to-end Medallion Architecture pipeline."""
+    """Executes the full end-to-end Medallion pipeline."""
     start_total = time.time()
-    print(BANNER)
-    logger.info(f"Starting Medallion Pipeline [dataset={dataset}, records={records}, pg_mode={pg_mode}]")
+    logger.info(f"Starting Medallion pipeline run [dataset={dataset}, records={records}, pg_mode={pg_mode}]")
 
     # Metrics collection dictionary
     metrics: dict[str, dict[str, str]] = {
@@ -193,25 +180,25 @@ def run_pipeline(
     # PIPELINE SUMMARY & AUDIT RECONCILIATION
     # --------------------------------------------------------------------------
     dur_total = time.time() - start_total
-    print("\n" + "=" * 80)
-    print("📊 MEDALLION PIPELINE EXECUTION SUMMARY")
-    print("=" * 80)
-    print(f"Total Execution Duration: {format_duration(dur_total)}")
-    print("-" * 80)
-    print(f"  🥉 Bronze Ingestion:     {format_duration(dur_bronze)}")
+    print("\n" + "=" * 70)
+    print("MEDALLION PIPELINE EXECUTION SUMMARY")
+    print("=" * 70)
+    print(f"Total Duration: {format_duration(dur_total)}")
+    print("-" * 70)
+    print(f"Bronze Ingestion:     {format_duration(dur_bronze)}")
     for k, v in metrics["bronze"].items():
-        print(f"      • {k}: {v}")
-    print(f"  🥈 Silver Hygiene:       {format_duration(dur_silver)}")
+        print(f"  - {k}: {v}")
+    print(f"Silver Hygiene:       {format_duration(dur_silver)}")
     for k, v in metrics["silver"].items():
-        print(f"      • {k}: {v}")
-    print(f"  🥇 Gold Marts & Z-Order: {format_duration(dur_gold)}")
+        print(f"  - {k}: {v}")
+    print(f"Gold Marts & Z-Order: {format_duration(dur_gold)}")
     for k, v in metrics["gold"].items():
-        print(f"      • {k}: {v}")
-    print(f"  🐘 PostgreSQL Serving:   {format_duration(dur_pg)}")
+        print(f"  - {k}: {v}")
+    print(f"PostgreSQL Serving:   {format_duration(dur_pg)}")
     for k, v in metrics["postgres"].items():
-        print(f"      • {k}: {v}")
-    print("=" * 80)
-    print("🎉 Pipeline executed successfully with zero data loss & verified idempotency.\n")
+        print(f"  - {k}: {v}")
+    print("=" * 70)
+    logger.info("Pipeline execution completed successfully.")
 
 
 def main():
@@ -229,7 +216,7 @@ def main():
         "--records",
         type=int,
         default=500,
-        help="Number of records to generate/ingest for synthetic datasets (default: 500)",
+        help="Number of records to generate/ingest for sample datasets (default: 500)",
     )
     parser.add_argument(
         "--skip-postgres",

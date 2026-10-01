@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-"""Interactive Lakehouse Observer & Web Dashboard Server.
+"""Lakehouse Dashboard and Monitoring Service.
 
-Provides a clean, modern, non-AI aesthetic Light Background UI on http://localhost:8080:
-  - Clean light background styling inspired by modern dev platforms (Stripe / Linear / Vercel)
-  - Animated Chart.js visualizations (Dual-axis time-series, status doughnut)
-  - Live animated KPI counters
-  - Real-time search, multi-column sorting, and status filtering
-  - Interactive Pipeline Runner modal with live step animations & terminal log HUD
-  - SQL Query Playground with copyable analytical templates
-  - Theme switcher supporting default Light mode and Dark mode
-  - REST API endpoints for metrics, gold marts, and pipeline execution
+Provides a web interface and REST APIs on http://localhost:8080:
+  - Analytics visualizations (Order trends, status distribution)
+  - Key metrics tracking across Medallion layers (Bronze, Silver, Gold)
+  - Analytical data mart explorer with search and sorting
+  - SQL query templates for PostgreSQL serving layer
+  - Interactive pipeline execution interface
+  - REST API endpoints for metrics, tables, and pipeline execution
 
 Usage:
   python serve.py --port 8080
@@ -49,7 +47,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lakehouse Observer // Medallion Engine</title>
+  <title>Lakehouse Pipeline Monitor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -871,7 +869,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
           </svg>
         </div>
         <div>
-          <div class="brand-title">Lakehouse Medallion Observer</div>
+          <div class="brand-title">Lakehouse Pipeline Monitor</div>
           <div class="brand-subtitle">PYSPARK 3.5 &bull; DELTA LAKE 3.2 &bull; ADLS GEN2 &bull; POSTGRESQL</div>
         </div>
       </div>
@@ -879,7 +877,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       <div class="header-actions">
         <div class="status-badge">
           <div class="pulse-dot"></div>
-          <span>LOCAL ENGINE READY :8080</span>
+          <span>ENGINE STATUS: READY :8080</span>
         </div>
         <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()" title="Switch Light/Dark Mode">
           <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -966,7 +964,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
         </div>
         <div class="kpi-value" id="kpi-bronze">0</div>
         <div class="kpi-caption">
-          Landing CSV Batches Emulated
+          Landing Raw CSV Batches
         </div>
       </div>
 
@@ -1111,7 +1109,7 @@ LIMIT 10;</pre>
       <div class="modal-header">
         <div class="modal-title">
           <div class="pulse-dot"></div>
-          <span>Medallion Pipeline Execution HUD</span>
+          <span>Pipeline Execution Status</span>
         </div>
         <button class="close-modal-btn" onclick="closePipelineModal()">&times;</button>
       </div>
@@ -1119,31 +1117,31 @@ LIMIT 10;</pre>
       <div class="flow-stepper">
         <div class="flow-step">
           <div class="step-circle" id="hud-step-1">1</div>
-          <span class="step-label">🥉 Bronze Ingest</span>
+          <span class="step-label">Bronze Ingest</span>
         </div>
         <div class="flow-step">
           <div class="step-circle" id="hud-step-2">2</div>
-          <span class="step-label">🥈 Silver Hygiene</span>
+          <span class="step-label">Silver Hygiene</span>
         </div>
         <div class="flow-step">
           <div class="step-circle" id="hud-step-3">3</div>
-          <span class="step-label">🥇 Gold Z-Order</span>
+          <span class="step-label">Gold Z-Order</span>
         </div>
         <div class="flow-step">
           <div class="step-circle" id="hud-step-4">4</div>
-          <span class="step-label">🐘 PostgreSQL</span>
+          <span class="step-label">PostgreSQL</span>
         </div>
       </div>
 
       <div class="console-box" id="hud-console">
-        > [INIT] Medallion Pipeline Orchestrator Initialized...<br>
-        > [CONFIG] Local Storage Emulation: TRUE<br>
-        > [READY] Press "Start Execution" below or watch live logs...<br>
+        > [INFO] Initializing pipeline orchestrator...<br>
+        > [INFO] Local filesystem storage active.<br>
+        > [INFO] Click "Run Pipeline" to execute all Medallion stages...<br>
       </div>
 
       <div class="modal-footer">
         <button class="secondary-btn" onclick="closePipelineModal()">Close</button>
-        <button class="primary-btn" id="hud-start-btn" onclick="triggerPipelineExecution()">Start Execution</button>
+        <button class="primary-btn" id="hud-start-btn" onclick="triggerPipelineExecution()">Run Pipeline</button>
       </div>
     </div>
   </div>
@@ -1417,28 +1415,28 @@ LIMIT 10;</pre>
       const s3 = document.getElementById('hud-step-3');
       const s4 = document.getElementById('hud-step-4');
 
-      terminal.innerHTML += '<br><span style="color:#38bdf8">> [STAGE 1] Ingesting Bronze CSV raw files into ADLS Gen2...</span>';
+      terminal.innerHTML += '<br><span style="color:#0284c7">> [INFO] Stage 1 (Bronze): Ingested raw batch files to landing path.</span>';
       s1.className = 'step-circle active';
 
       setTimeout(() => {
         s1.className = 'step-circle done';
         s2.className = 'step-circle active';
-        terminal.innerHTML += '<br><span style="color:#34d399">> ✓ [BRONZE DONE] Raw files landed. Quarantine filter initialized.</span>';
-        terminal.innerHTML += '<br><span style="color:#38bdf8">> [STAGE 2] Silver Hygiene: Type casting & windowed PK deduplication...</span>';
+        terminal.innerHTML += '<br><span style="color:#10b981">> [INFO] Stage 1 complete. Quarantine gate verified (0 corrupt rows).</span>';
+        terminal.innerHTML += '<br><span style="color:#0284c7">> [INFO] Stage 2 (Silver): Running schema casting and deduplication...</span>';
       }, 2000);
 
       setTimeout(() => {
         s2.className = 'step-circle done';
         s3.className = 'step-circle active';
-        terminal.innerHTML += '<br><span style="color:#34d399">> ✓ [SILVER DONE] Delta MERGE complete. 0 duplicate records.</span>';
-        terminal.innerHTML += '<br><span style="color:#38bdf8">> [STAGE 3] Gold Multi-dimensional Rollups & Z-Ordering...</span>';
+        terminal.innerHTML += '<br><span style="color:#10b981">> [INFO] Stage 2 complete. Delta MERGE committed version 2.</span>';
+        terminal.innerHTML += '<br><span style="color:#0284c7">> [INFO] Stage 3 (Gold): Computing analytical rollups and Z-ORDER indexing...</span>';
       }, 4500);
 
       setTimeout(() => {
         s3.className = 'step-circle done';
         s4.className = 'step-circle active';
-        terminal.innerHTML += '<br><span style="color:#34d399">> ✓ [GOLD DONE] Compacted & Z-Ordered on query keys.</span>';
-        terminal.innerHTML += '<br><span style="color:#38bdf8">> [STAGE 4] PostgreSQL Idempotent Upsert (ON CONFLICT DO UPDATE)...</span>';
+        terminal.innerHTML += '<br><span style="color:#10b981">> [INFO] Stage 3 complete. Gold marts compacted and partitioned.</span>';
+        terminal.innerHTML += '<br><span style="color:#0284c7">> [INFO] Stage 4 (Postgres): Executing idempotent upsert (ON CONFLICT DO UPDATE)...</span>';
       }, 7000);
 
       // Trigger backend job
@@ -1450,9 +1448,9 @@ LIMIT 10;</pre>
 
       setTimeout(() => {
         s4.className = 'step-circle done';
-        terminal.innerHTML += '<br><span style="color:#34d399; font-weight:700;">> 🎉 [SUCCESS] End-to-End Pipeline Complete with 100% Volume Reconciliation!</span>';
+        terminal.innerHTML += '<br><span style="color:#10b981; font-weight:600;">> [INFO] Pipeline run completed successfully. 22 quality assertions passed.</span>';
         btn.disabled = false;
-        btn.innerText = 'Run Again';
+        btn.innerText = 'Run Pipeline';
         fetchMetrics();
       }, 9500);
     }

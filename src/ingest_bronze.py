@@ -49,7 +49,7 @@ logger = setup_logger("ingest_bronze")
 # 1. DATASET GENERATORS & DOWNLOADERS
 # ==============================================================================
 class DatasetIngestor:
-    """Handles raw dataset acquisition (download or synthetic generation)."""
+    """Handles raw dataset acquisition (download or sample dataset generation)."""
 
     def __init__(self, staging_dir: Path):
         self.staging_dir = staging_dir
@@ -64,14 +64,14 @@ class DatasetIngestor:
         return target_path
 
     def generate_ecommerce_dataset(self, num_orders: int = 1000) -> list[Path]:
-        """Generates realistic Brazilian E-Commerce transactional CSV files:
+        """Generates sample Brazilian E-Commerce transactional CSV files:
 
         - olist_orders_dataset.csv
         - olist_order_items_dataset.csv
         - olist_order_payments_dataset.csv
         - olist_customers_dataset.csv
         """
-        logger.info(f"Generating synthetic Brazilian E-Commerce dataset ({num_orders} orders)...")
+        logger.info(f"Generating sample Brazilian E-Commerce dataset ({num_orders} orders)...")
 
         cities = ["sao paulo", "rio de janeiro", "belo horizonte", "brasilia", "curitiba", "porto alegre", "salvador"]
         states = ["SP", "RJ", "MG", "DF", "PR", "RS", "BA"]
@@ -183,8 +183,8 @@ class DatasetIngestor:
         return files
 
     def generate_nyctaxi_dataset(self, num_records: int = 2000) -> list[Path]:
-        """Generates realistic NYC Yellow Taxi trip records CSV file."""
-        logger.info(f"Generating synthetic NYC Yellow Taxi dataset ({num_records} trip records)...")
+        """Generates sample NYC Yellow Taxi trip records CSV file."""
+        logger.info(f"Generating sample NYC Yellow Taxi dataset ({num_records} trip records)...")
         output_path = self.staging_dir / "nyc_yellow_taxi_trips.csv"
 
         base_time = datetime(2026, 1, 1, 0, 0, 0)
@@ -401,7 +401,7 @@ def main():
         "--records",
         type=int,
         default=1000,
-        help="Number of records/orders to generate for synthetic datasets (default: 1000)",
+        help="Number of records/orders to generate for sample datasets (default: 1000)",
     )
     parser.add_argument(
         "--source-url",

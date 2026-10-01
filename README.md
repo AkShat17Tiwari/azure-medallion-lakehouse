@@ -1,6 +1,6 @@
-# 🏛️ Enterprise Data Lakehouse: Medallion Architecture
+# Azure Medallion Data Lakehouse
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success.svg?logo=githubpages&logoColor=white)](https://akshat17tiwari.github.io/azure-medallion-lakehouse/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-blue.svg?logo=githubpages&logoColor=white)](https://akshat17tiwari.github.io/azure-medallion-lakehouse/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Apache Spark](https://img.shields.io/badge/Apache%20Spark-3.5.x-E25A1C.svg?logo=apache-spark&logoColor=white)](https://spark.apache.org/)
 [![Delta Lake](https://img.shields.io/badge/Delta%20Lake-3.2.x-00ADD8.svg?logo=delta&logoColor=white)](https://delta.io/)
@@ -9,13 +9,13 @@
 [![Tests](https://img.shields.io/badge/Pytest-22%20Passed-brightgreen.svg?logo=pytest&logoColor=white)](https://pytest.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](LICENSE)
 
-An enterprise-grade, end-to-end **Data Lakehouse** implementation engineered with **Python**, **PySpark**, **Delta Lake**, **Azure Data Lake Storage Gen2 (ADLS Gen2)**, and **PostgreSQL**. The platform features automated ingestion, data quality quarantine gates, schema enforcement, idempotent Delta MERGE operations, multidimensional Z-Ordering, and relational database serving.
+An end-to-end Data Lakehouse implementing the Medallion Architecture (Bronze -> Silver -> Gold) using Python, PySpark, Delta Lake, Azure Data Lake Storage Gen2 (ADLS Gen2), and PostgreSQL. Includes automated ingestion, data quality quarantine handling, schema enforcement, idempotent Delta MERGE operations, multidimensional Z-Ordering, and relational database serving.
 
-> 🌐 **Live Interactive Cloud Demo**: View the live Medallion Lakehouse Observer dashboard, animated charts, data mart explorer, and pipeline simulator at **[https://akshat17tiwari.github.io/azure-medallion-lakehouse/](https://akshat17tiwari.github.io/azure-medallion-lakehouse/)**.
+> **Live Interactive Demo**: [https://akshat17tiwari.github.io/azure-medallion-lakehouse/](https://akshat17tiwari.github.io/azure-medallion-lakehouse/)
 
 ---
 
-## 📐 Architecture Diagram
+## Architecture
 
 ```text
 +----------------------------------------------------------------------------------------------------+
@@ -30,7 +30,7 @@ An enterprise-grade, end-to-end **Data Lakehouse** implementation engineered wit
                                     |                                |
                                     v                                v
 +----------------------------------------------------------------------------------------------------+
-|                         🥉 BRONZE LAYER: RAW LANDING (ADLS Gen2 / Delta)                           |
+|                         BRONZE LAYER: RAW LANDING (ADLS Gen2 / Delta)                              |
 |  • File Formats: Raw CSV & Append-Only Delta Tables                                               |
 |  • Schema Strategy: Schema-on-Read, Zero Data Loss, Raw Content Preservation                       |
 |  • Ingestion Audit Metadata: _ingested_at, _source_file, _batch_id                                 |
@@ -42,7 +42,7 @@ An enterprise-grade, end-to-end **Data Lakehouse** implementation engineered wit
                         |                                                     |
                         v                                                     v
        +---------------------------------+           +-----------------------------------------------+
-       |   🚨 DATA QUALITY QUARANTINE    |           |    🥈 SILVER LAYER: ENRICHED & CLEANED DELTA  |
+       |     DATA QUALITY QUARANTINE     |           |    SILVER LAYER: ENRICHED & CLEANED DELTA     |
        |  • Malformed / Corrupted Rows   |           |  • Explicit Type Enforcement & Casting        |
        |  • Missing / Blank Primary Keys |           |  • Timestamp Normalization (UTC)              |
        |  • Isolated for Root-Cause Fix  |           |  • Primary Key Deduplication (Window Ranking) |
@@ -54,7 +54,7 @@ An enterprise-grade, end-to-end **Data Lakehouse** implementation engineered wit
                                                                              |
                                                                              v
 +----------------------------------------------------------------------------------------------------+
-|                           🥇 GOLD LAYER: CURATED BUSINESS MARTS (Delta)                            |
+|                           GOLD LAYER: CURATED BUSINESS MARTS (Delta)                               |
 |  • gold_daily_orders_summary: Daily volume, unique customers, delivery lead times, order statuses  |
 |  • gold_daily_zone_metrics: Daily pickup zones, payment methods, revenue, average fares & tips     |
 |  • Performance Optimizations: Delta File Compaction & Multidimensional Z-Ordering                  |
@@ -65,7 +65,7 @@ An enterprise-grade, end-to-end **Data Lakehouse** implementation engineered wit
                                                    |
                                                    v
 +----------------------------------------------------------------------------------------------------+
-|                           🐘 SERVING LAYER: RELATIONAL POSTGRESQL                                  |
+|                           SERVING LAYER: RELATIONAL POSTGRESQL                                     |
 |  • Target Tables: public.gold_daily_orders_summary, public.gold_daily_zone_metrics                 |
 |  • Idempotency Engine: ON CONFLICT (composite_primary_keys) DO UPDATE SET ...                      |
 |  • Analytical B-Tree Indexes & Pre-aggregated Materialized Reporting Views                         |
@@ -82,7 +82,7 @@ An enterprise-grade, end-to-end **Data Lakehouse** implementation engineered wit
 
 ---
 
-## 💻 Technology Breakdown
+## Technology Stack
 
 | Component | Technology | Version | Purpose & Architecture Value |
 | :--- | :--- | :--- | :--- |
@@ -97,25 +97,25 @@ An enterprise-grade, end-to-end **Data Lakehouse** implementation engineered wit
 
 ---
 
-## 📁 Repository Directory Structure
+## Project Structure
 
 ```text
 data-lakehouse/
 ├── main.py                                    # Master orchestrator (Bronze -> Silver -> Gold -> PostgreSQL)
 ├── .env.example                               # Credential template for Azure & PostgreSQL
-├── .gitignore                                 # Production ignore rules (secrets, venvs, checkpoints)
-├── README.md                                  # Comprehensive architecture guide & documentation
+├── .gitignore                                 # Ignore rules (secrets, venvs, checkpoints)
+├── README.md                                  # Architecture guide & documentation
 ├── requirements.txt                           # Production runtime dependencies
 ├── requirements-dev.txt                       # Development & test dependencies
 │
 ├── config/                                    # Application Configuration & Spark Factories
-│   ├── __init__.py                            # Lazy module loaders
-│   ├── settings.py                            # Pydantic & dataclass environment parser
+│   ├── __init__.py                            # Module loaders
+│   ├── settings.py                            # Pydantic environment parser
 │   └── spark_session.py                       # SparkSession factory (Delta, Hadoop ABFS, JDBC, JDK detector)
 │
-├── src/                                       # Core Medallion Transformation Modules
+├── src/                                       # Medallion Transformation Modules
 │   ├── __init__.py
-│   ├── ingest_bronze.py                       # Raw dataset generator/downloader & ADLS Gen2 uploader
+│   ├── ingest_bronze.py                       # Dataset generator/downloader & ADLS Gen2 uploader
 │   ├── bronze_to_silver.py                    # Schema enforcement, quarantine gate, deduplication, Delta MERGE
 │   ├── silver_to_gold.py                      # Multi-dimensional business rollups, compaction, Z-Ordering
 │   ├── gold_to_postgres.py                    # Idempotent batch publisher to PostgreSQL (ON CONFLICT DO UPDATE)
@@ -142,7 +142,7 @@ data-lakehouse/
 ├── sql/                                       # Relational Serving Layer DDL
 │   └── schema.sql                             # PostgreSQL DDL with primary keys, indexes & analytical views
 │
-├── notebooks/                                 # Cloud Interactive Notebooks
+├── notebooks/                                 # Cloud Notebooks
 │   └── bronze_to_silver.py                    # Databricks Repos notebook with widgets & Z-Order
 │
 ├── templates/                                 # Infrastructure as Code
@@ -151,7 +151,7 @@ data-lakehouse/
 │       ├── pipeline_copy_bronze_csv.json      # Standalone ADF Copy Data pipeline JSON
 │       └── arm_template_bronze_ingestion.json # Full ARM resource deployment template
 │
-├── data/                                      # Local Emulation Storage & Raw Landing
+├── data/                                      # Local Storage & Landing
 │   ├── raw/landing/                           # Staging area for incoming CSVs
 │   ├── bronze/                                # Bronze Delta tables & raw files (gitignored)
 │   ├── silver/                                # Cleaned & partitioned Silver tables (gitignored)
@@ -180,7 +180,7 @@ data-lakehouse/
 
 ---
 
-## 🚀 Step-by-Step Setup Guide
+## Setup Guide
 
 ### 1. Prerequisites
 - **Python**: `3.9` or higher
@@ -260,12 +260,12 @@ POSTGRES_JDBC_URL=jdbc:postgresql://localhost:5432/lakehouse_gold?sslmode=prefer
 
 ---
 
-## 🏃 Running the Pipeline
+## Running the Pipeline
 
 ### 1. Master Pipeline Orchestrator (`main.py`)
 Run the entire end-to-end Medallion pipeline sequentially:
 ```bash
-# Run complete end-to-end suite across all datasets
+# Run complete pipeline across all datasets
 .venv/bin/python3 main.py --dataset all --records 1000
 
 # Run with dry-run PostgreSQL publication (verifies SQL without database server)
@@ -275,15 +275,15 @@ Run the entire end-to-end Medallion pipeline sequentially:
 .venv/bin/python3 main.py --dataset ecommerce --skip-postgres
 ```
 
-### 2. Localhost Interactive Web Dashboard (`serve.py`)
-Launch the interactive web UI and API server on localhost to explore the Lakehouse:
+### 2. Local Dashboard Server (`serve.py`)
+Launch the monitoring dashboard and API server on localhost:
 ```bash
 .venv/bin/python3 serve.py --port 8080
 # Open in browser: http://localhost:8080
 ```
-- **KPI Metrics**: View Bronze file counts, Silver clean record counts, and Gold mart metrics.
-- **Interactive Data Viewer**: Browse `gold_daily_orders_summary` and `gold_daily_zone_metrics`.
-- **Live APIs**:
+- **Pipeline Metrics**: View Bronze file counts, Silver clean record counts, and Gold mart metrics.
+- **Data Mart Viewer**: Browse `gold_daily_orders_summary` and `gold_daily_zone_metrics`.
+- **APIs**:
   - `GET http://localhost:8080/api/metrics`
   - `GET http://localhost:8080/api/gold/orders`
   - `GET http://localhost:8080/api/gold/zones`
@@ -309,7 +309,7 @@ Launch the interactive web UI and API server on localhost to explore the Lakehou
 
 ---
 
-## 🧪 Automated Testing & Data Quality Verification
+## Testing & Data Quality
 
 The test suite contains **22 tests** covering unit logic, configuration parsing, data hygiene, and end-to-end data quality reconciliation:
 
@@ -352,12 +352,12 @@ tests/unit/test_transformations.py::test_gold_aggregation_metrics PASSED        
 
 ---
 
-## 🚀 Deployment & Containerization
+## Deployment
 
-The project provides multiple deployment models for local development, containerized environments, and cloud PaaS hosting:
+The project provides multiple deployment models for local development, containerized environments, and cloud hosting:
 
 ### 1. Docker & Docker Compose (Full Stack)
-Spin up the complete multi-tier architecture locally, including PostgreSQL 16 (with automated schema DDL execution) and the Lakehouse Observer UI:
+Spin up the complete multi-tier architecture locally, including PostgreSQL 16 (with automated schema DDL execution) and the dashboard service:
 ```bash
 # Build and run all services in the background
 docker compose up -d
