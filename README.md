@@ -384,7 +384,7 @@ chmod +x scripts/deploy.sh
 The repository includes a `render.yaml` blueprint and standard `Procfile`. Connecting this GitHub repository to [Render](https://render.com) or [Railway](https://railway.app) will automatically provision and deploy the web dashboard with environment variables configured out of the box.
 
 ### 5. Automated CI/CD Pipeline (GitHub Actions)
-Every `push` and `pull_request` to `main` triggers `.github/workflows/ci.yml`:
+The repository provides `ci/github-actions-ci.yml` (ready to place into `.github/workflows/ci.yml`):
 - Provisions Java 21 Temurin runtime and Python 3.11.
 - Executes full PyTest test suite (unit + data quality tests).
 - Asserts schema DDL syntax and ADF JSON template compliance.
