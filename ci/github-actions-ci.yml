@@ -1,0 +1,62 @@
+name: Lakehouse Medallion CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-validate:
+    name: Run PySpark Tests & Quality Guardrails
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Required for PySpark 3.5 & Delta 3.2)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Verify Configuration & Environment Parsing
+        run: |
+          python -c "import config.settings; print('Settings module imported successfully')"
+
+      - name: Run PyTest Quality Guardrails & Reconciliation Tests
+        run: |
+          pytest tests/ -v --durations=10
+
+      - name: Validate PostgreSQL Schema DDL Syntax
+        run: |
+          python -c "
+          with open('sql/schema.sql') as f:
+              sql = f.read()
+          assert 'CREATE TABLE' in sql
+          assert 'gold_daily_orders_summary' in sql
+          print('SQL DDL verified successfully')
+          "
+
+      - name: Verify ADF Pipeline Templates
+        run: |
+          python -c "
+          import json
+          with open('templates/adf/pipeline_copy_bronze.json') as f:
+              data = json.load(f)
+          assert 'CopyActivity' in str(data)
+          print('ADF JSON template verified successfully')
+          "

@@ -1,0 +1,13 @@
+-r requirements.txt
+
+# Linting & Formatting
+black>=24.4.0
+ruff>=0.4.0
+
+# Pytest plugins & test coverage
+pytest-cov>=5.0.0
+pytest-mock>=3.14.0
+
+# Interactive Development
+ipykernel>=6.29.0
+notebook>=7.2.0

@@ -1,0 +1,204 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "factoryName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Data Factory resource."
+      },
+      "defaultValue": "adf-lakehouse-medallion"
+    },
+    "adlsGen2StorageAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Data Lake Storage Gen2 account."
+      },
+      "defaultValue": "stlakehousemedallion"
+    },
+    "adlsGen2Endpoint": {
+      "type": "string",
+      "metadata": {
+        "description": "ADLS Gen2 DFS URL endpoint."
+      },
+      "defaultValue": "https://stlakehousemedallion.dfs.core.windows.net"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "name": "[concat(parameters('factoryName'), '/ls_adls_gen2_lakehouse')]",
+      "type": "Microsoft.DataFactory/factories/linkedservices",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "description": "Linked service connecting ADF to ADLS Gen2 storage using Managed Identity.",
+        "type": "AzureBlobFS",
+        "typeProperties": {
+          "url": "[parameters('adlsGen2Endpoint')]"
+        }
+      }
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/ds_source_raw_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "dependsOn": [
+        "[concat(parameters('factoryName'), '/ls_adls_gen2_lakehouse')]"
+      ],
+      "properties": {
+        "description": "Raw source CSV dataset in landing zone.",
+        "linkedServiceName": {
+          "referenceName": "ls_adls_gen2_lakehouse",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "containerName": {
+            "type": "string",
+            "defaultValue": "landing"
+          },
+          "fileName": {
+            "type": "string"
+          }
+        },
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "fileSystem": "@dataset().containerName",
+            "fileName": "@dataset().fileName"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        }
+      }
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/ds_adls_bronze_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "dependsOn": [
+        "[concat(parameters('factoryName'), '/ls_adls_gen2_lakehouse')]"
+      ],
+      "properties": {
+        "description": "Target raw CSV dataset residing in ADLS Gen2 bronze container.",
+        "linkedServiceName": {
+          "referenceName": "ls_adls_gen2_lakehouse",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "containerName": {
+            "type": "string",
+            "defaultValue": "bronze"
+          },
+          "directoryPath": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          }
+        },
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "fileSystem": "@dataset().containerName",
+            "folderPath": "@dataset().directoryPath",
+            "fileName": "@dataset().fileName"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        }
+      }
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/pl_copy_raw_csv_to_bronze')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "dependsOn": [
+        "[concat(parameters('factoryName'), '/ds_source_raw_csv')]",
+        "[concat(parameters('factoryName'), '/ds_adls_bronze_csv')]"
+      ],
+      "properties": {
+        "description": "Ingests raw landing CSVs into the Bronze layer preserving raw bits and schema.",
+        "parameters": {
+          "SourceContainerOrUrl": {
+            "type": "string",
+            "defaultValue": "landing"
+          },
+          "SourceFileName": {
+            "type": "string",
+            "defaultValue": "olist_orders_dataset.csv"
+          },
+          "DestinationContainer": {
+            "type": "string",
+            "defaultValue": "bronze"
+          },
+          "DestinationDirectory": {
+            "type": "string",
+            "defaultValue": "raw/ecommerce"
+          }
+        },
+        "activities": [
+          {
+            "name": "Copy_Raw_CSV_To_Bronze_ADLS",
+            "type": "Copy",
+            "policy": {
+              "timeout": "0.01:00:00",
+              "retry": 3,
+              "retryIntervalInSeconds": 30
+            },
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false
+                },
+                "formatSettings": {
+                  "type": "DelimitedTextReadSettings"
+                }
+              },
+              "sink": {
+                "type": "DelimitedTextSink",
+                "storeSettings": {
+                  "type": "AzureBlobFSWriteSettings",
+                  "copyBehavior": "PreserveHierarchy"
+                },
+                "formatSettings": {
+                  "type": "DelimitedTextWriteSettings",
+                  "fileExtension": ".csv"
+                }
+              },
+              "validateDataConsistency": true
+            },
+            "inputs": [
+              {
+                "referenceName": "ds_source_raw_csv",
+                "type": "DatasetReference",
+                "parameters": {
+                  "containerName": "@pipeline().parameters.SourceContainerOrUrl",
+                  "fileName": "@pipeline().parameters.SourceFileName"
+                }
+              }
+            ],
+            "outputs": [
+              {
+                "referenceName": "ds_adls_bronze_csv",
+                "type": "DatasetReference",
+                "parameters": {
+                  "containerName": "@pipeline().parameters.DestinationContainer",
+                  "directoryPath": "@pipeline().parameters.DestinationDirectory",
+                  "fileName": "@pipeline().parameters.SourceFileName"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: lakehouse-observer
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python serve.py --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: USE_LOCAL_STORAGE_EMULATION
+        value: "true"

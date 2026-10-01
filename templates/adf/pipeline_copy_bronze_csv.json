@@ -1,0 +1,120 @@
+{
+  "name": "pl_copy_raw_csv_to_bronze",
+  "properties": {
+    "description": "Azure Data Factory pipeline to ingest raw CSV datasets directly into the ADLS Gen2 bronze container without altering schema or contents.",
+    "parameters": {
+      "SourceContainerOrUrl": {
+        "type": "string",
+        "defaultValue": "landing",
+        "description": "Source container or base path for incoming raw files"
+      },
+      "SourceFileName": {
+        "type": "string",
+        "defaultValue": "olist_orders_dataset.csv",
+        "description": "Name of the raw CSV file to ingest"
+      },
+      "DestinationContainer": {
+        "type": "string",
+        "defaultValue": "bronze",
+        "description": "Destination ADLS Gen2 container for the Bronze medallion layer"
+      },
+      "DestinationDirectory": {
+        "type": "string",
+        "defaultValue": "raw/ecommerce/@{formatDateTime(utcnow(), 'yyyy/MM/dd')}",
+        "description": "Destination folder path in ADLS Gen2 bronze container"
+      }
+    },
+    "activities": [
+      {
+        "name": "Copy_Raw_CSV_To_Bronze_ADLS",
+        "type": "Copy",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.01:00:00",
+          "retry": 3,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "userProperties": [
+          {
+            "name": "SourceFile",
+            "value": "@pipeline().parameters.SourceFileName"
+          },
+          {
+            "name": "DestinationLayer",
+            "value": "ADLS Gen2 Bronze"
+          }
+        ],
+        "typeProperties": {
+          "source": {
+            "type": "DelimitedTextSource",
+            "storeSettings": {
+              "type": "AzureBlobFSReadSettings",
+              "recursive": false,
+              "enablePartitionDiscovery": false
+            },
+            "formatSettings": {
+              "type": "DelimitedTextReadSettings",
+              "skipLineCount": 0
+            }
+          },
+          "sink": {
+            "type": "DelimitedTextSink",
+            "storeSettings": {
+              "type": "AzureBlobFSWriteSettings",
+              "copyBehavior": "PreserveHierarchy"
+            },
+            "formatSettings": {
+              "type": "DelimitedTextWriteSettings",
+              "quoteAllText": false,
+              "fileExtension": ".csv"
+            }
+          },
+          "enableStaging": false,
+          "validateDataConsistency": true,
+          "logSettings": {
+            "enableCopyActivityLog": true,
+            "copyActivityLogSettings": {
+              "logLevel": "Warning",
+              "enableReliableLogging": false
+            },
+            "logLocationSettings": {
+              "linkedServiceName": {
+                "referenceName": "ls_adls_gen2_lakehouse",
+                "type": "LinkedServiceReference"
+              },
+              "path": "checkpoints/adf_logs"
+            }
+          }
+        },
+        "inputs": [
+          {
+            "referenceName": "ds_source_raw_csv",
+            "type": "DatasetReference",
+            "parameters": {
+              "containerName": "@pipeline().parameters.SourceContainerOrUrl",
+              "fileName": "@pipeline().parameters.SourceFileName"
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "referenceName": "ds_adls_bronze_csv",
+            "type": "DatasetReference",
+            "parameters": {
+              "containerName": "@pipeline().parameters.DestinationContainer",
+              "directoryPath": "@pipeline().parameters.DestinationDirectory",
+              "fileName": "@pipeline().parameters.SourceFileName"
+            }
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      "MedallionArchitecture",
+      "BronzeIngestion",
+      "RawData"
+    ]
+  }
+}
