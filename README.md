@@ -392,21 +392,4 @@ The repository provides `ci/github-actions-ci.yml` (ready to place into `.github
 - Executes full PyTest test suite (unit + data quality tests).
 - Asserts schema DDL syntax and ADF JSON template compliance.
 
----
 
-## 💼 Key Resume Talking Points & Interview Deep Dives
-
-Use these talking points on your resume and during senior data engineering technical interviews:
-
-- **Medallion Lakehouse Architecture**:
-  > *"Architected an end-to-end Data Lakehouse on Azure ADLS Gen2 using PySpark and Delta Lake, implementing Medallion Architecture (Bronze → Silver → Gold) to transition raw transactional CSV batches into cleaned, deduplicated, and business-aggregated data marts."*
-- **Data Quality & Quarantine Gates**:
-  > *"Implemented a robust data hygiene framework using PySpark's permissive CSV parser with `_corrupt_record` capture, isolating malformed records into quarantine tables to ensure 100% data auditability without pipeline interruptions."*
-- **Delta Lake ACID & Idempotency**:
-  > *"Engineered fully idempotent pipeline runs across all layers: utilized Delta Lake `MERGE` (Upsert) on primary keys in the Silver layer and PostgreSQL `ON CONFLICT DO UPDATE` in the serving layer, preventing duplicate records during pipeline retries."*
-- **Performance Optimization & Data Skipping**:
-  > *"Accelerated analytical query performance for downstream BI tools by implementing date partitioning (`report_year`, `report_month`), file bin-packing compaction, and multidimensional Z-Ordering along high-cardinality query dimensions (`order_status`, `PULocationID`)."*
-- **Cross-Layer Data Reconciliation**:
-  > *"Authored automated CI/CD data quality test suites using Pytest, asserting schema conformity, non-null primary key constraints, and 100% volumetric reconciliation (`SUM(total_orders)` in Gold equals row count in Silver)."*
-- **Hybrid Cloud & Enterprise Governance**:
-  > *"Designed modular configuration abstractions supporting Azure ADLS Gen2 Managed Identity / OAuth / SAS tokens alongside a zero-dependency local filesystem emulator, reducing local development cycle times."*
