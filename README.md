@@ -1,5 +1,6 @@
 # 🏛️ Enterprise Data Lakehouse: Medallion Architecture
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success.svg?logo=githubpages&logoColor=white)](https://akshat17tiwari.github.io/azure-medallion-lakehouse/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Apache Spark](https://img.shields.io/badge/Apache%20Spark-3.5.x-E25A1C.svg?logo=apache-spark&logoColor=white)](https://spark.apache.org/)
 [![Delta Lake](https://img.shields.io/badge/Delta%20Lake-3.2.x-00ADD8.svg?logo=delta&logoColor=white)](https://delta.io/)
@@ -9,6 +10,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](LICENSE)
 
 An enterprise-grade, end-to-end **Data Lakehouse** implementation engineered with **Python**, **PySpark**, **Delta Lake**, **Azure Data Lake Storage Gen2 (ADLS Gen2)**, and **PostgreSQL**. The platform features automated ingestion, data quality quarantine gates, schema enforcement, idempotent Delta MERGE operations, multidimensional Z-Ordering, and relational database serving.
+
+> 🌐 **Live Interactive Cloud Demo**: View the live Medallion Lakehouse Observer dashboard, animated charts, data mart explorer, and pipeline simulator at **[https://akshat17tiwari.github.io/azure-medallion-lakehouse/](https://akshat17tiwari.github.io/azure-medallion-lakehouse/)**.
 
 ---
 
